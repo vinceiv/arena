@@ -1,0 +1,36 @@
+{
+  "name": "arena.io",
+  "version": "1.0.0",
+  "description": "![alt text](https://github.com/vinceiv/arena.io/blob/master/share/Arenajs.png \":D\") ====== >Open Source Multiplayer Node.js server",
+  "main": "index.js",
+  "dependencies": {
+    "@types/express": "^4.0.35",
+    "@types/socket.io": "^1.4.29",
+    "express": "^4.14.0",
+    "node-uuid": "^1.4.7",
+    "nodejs": "^0.0.0",
+    "socket.io": "^1.7.3",
+    "socket.io-client": "^1.7.3",
+    "typescript": "^2.3.2",
+    "typings": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^7.0.15",
+    "nodemon": "^1.11.0",
+    "ts-node": "^3.0.2",
+    "typescript": "^2.3.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinceiv/arena.io.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vinceiv/arena.io/issues"
+  },
+  "homepage": "https://github.com/vinceiv/arena.io#readme"
+}
