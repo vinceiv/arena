@@ -5,16 +5,20 @@ import * as io from "socket.io";
 */
 export class room {
 
+  private _identifier: string;
   private _timeline: any; //Not implemented will be Obj states[]; to roll back in time/deal with interpolation
   private _creationTimeStamp: any;
   private _scoreBoard: [string,number][] = []; //NOT PART OF CORE
   private _io: any;
   private _players: playerModel[] = [];
+  private _MAXPLAYERS: number;
   // private _chat: chat; Not implemented bing a chat room to a game
 
-  constructor(serverIO: any){
+  constructor(serverIO: any, Opt?: {identifier: string, maxplayers: number}){
     this._io = io(serverIO);
     this._creationTimeStamp = new Date().getTime();
+    this._identifier = Opt && Opt.identifier || this.randomName();
+    this._MAXPLAYERS = Opt && Opt.maxplayers || 60;
   }
 
   /*
@@ -33,12 +37,17 @@ export class room {
 
     socket.on('getUpTime', () => {
       console.log('Uptime:', this.getUptime());
+      this.dumpStats();
     });
   }
 
+  public dumpStats(): void {
+    console.log('Server: ' , this._identifier);
+    console.log('Players: ', this._players.length);
+  }
   public addPlayer(socket: any){
     //Create new player obj save socket.id to player id
-    console.log("Added Client to room 1: %s", socket.id);
+    console.log("Added Client to room: %s", socket.id);
     //pass socket to listener
     this.listener(socket);
   }
@@ -56,6 +65,10 @@ export class room {
   }
 
   public getPlayerCount(): number { return this._players.length }
+
+  private randomName(): string {
+    return 'mew';
+  }
 
   /* Unimplemented methods, drop ideas */
   public getScoreboard(){} //Return Scoreboard, NOT PART OF CORE
