@@ -16,13 +16,14 @@ class Server {
     private port: number;
 
     private _rooms: room[] = [];
+    private _MAXROOMS: number = 10;
 
     constructor(){
       this.app = express();
       this.port = 8080;
       this.server = http.createServer(this.app);
       this.io = io(this.server);
-      this.listen();
+      this.listener();
       this.setupRoutes();
     }
 
@@ -36,7 +37,7 @@ class Server {
        }).use(express.static(__dirname + '/example/'));
     }
 
-    private listen(): void {
+    private listener(): void {
       this.server.listen(this.port, () => {
         console.log("Server Running Port %s", this.port);
       });
@@ -44,7 +45,10 @@ class Server {
       this.io.on('connection', (socket: any) => {
         console.log('Client connecton on port %s \nClientID: %s', this.port, socket.id);
 
-        this.createRoom();
+        // TESTING
+        if(!this.createRoom()){
+          //ERROR CREATING ROOM THROW ERROR
+        } //Move this to admin function or client facing , maybe check if room exists if not create room
         this._rooms[0].addPlayer(socket);
 
         socket.on('message', () => {
@@ -53,13 +57,16 @@ class Server {
         socket.on('disconnect', () => {
             console.log('Client disconnected');
         });
+        // TESTING
       });
     }
-
     //Pass options Obj, Max PLayers, etc
-    public createRoom(): void {
-      let newRoom: room = new room();
-      this._rooms.push(newRoom);
+    public createRoom(): boolean {
+      if (this._rooms.length < this._MAXROOMS){
+        let newRoom: room = new room(this.io);
+        this._rooms.push(newRoom);
+        return true;
+      } return false;
     }
   /* Admin functions
   *  auth and admin cli panel to come.

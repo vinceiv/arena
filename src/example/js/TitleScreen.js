@@ -76,7 +76,7 @@ TitleScreen.prototype = {
     playerName = input.value;
 
     spriteSelector = 2;
-    socket.emit('requestNewPlayer', spriteSelector, playerName);
+    socket.emit('getUpTime', spriteSelector, playerName);
   }
 
 };
