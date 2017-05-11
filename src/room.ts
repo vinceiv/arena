@@ -1,4 +1,5 @@
 import { playerModel } from './models/playerModel';
+import { utils } from './utils/utils';
 import * as io from "socket.io";
 /*  The Server will funnel users into seperate rooms
 *   These rooms will be an instance of the game server.
@@ -15,6 +16,10 @@ export class room {
   private _scoreBoard: [string,number][] = []; //NOT PART OF CORE
   private _playerMap: {[key:string]:playerModel} = {};
   //private _chat: chat; Not implemented bing a chat room to a game
+  private _utils = utils.getInstance();
+
+  //These options would be unique to every game or subset of games
+  private _GAMEOPTIONS = {MAXMOVEMENT: 3, MAXHEALTH: 100};
 
   constructor(serverIO: any, opts?: {identifier: string, maxplayers: number, updateinterval: number}){
     this._io = io(serverIO);
@@ -38,9 +43,14 @@ export class room {
       socket.emit('confirmedUser', player); // Just for sake of testing, would be something like socket.emit('confirmedUser', p);
     });
 
+    //need to write data model for update obj
     socket.on('updates', (update: any) => {
       //Need to limit to update rate and check for validity of update
-      this._playerMap[socket.id] =  update;
+      if(this._utils.getDifference(this._playerMap[socket.id].getX(), update.x) < this._GAMEOPTIONS.MAXMOVEMENT &&
+      this._utils.getDifference(this._playerMap[socket.id].getX(), update.x) < this._GAMEOPTIONS.MAXMOVEMENT){
+        this._playerMap[socket.id].setX(update.x);
+        this._playerMap[socket.id].setY(update.y);
+      }
     });
 
     socket.on('getStats', () => {

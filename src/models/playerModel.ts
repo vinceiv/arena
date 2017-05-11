@@ -28,8 +28,19 @@ export class playerModel {
   public getUserName(): string{
     return this.name;
   }
-
   public getScore(): number{
     return this.score;
+  }
+  public getX(): number{
+    return this.x;
+  }
+  public getY(): number{
+    return this.y;
+  }
+  public setX(x:number): void{
+    this.x = x;
+  }
+  public setY(y:number): void{
+    this.y = y;
   }
 }
