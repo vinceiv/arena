@@ -21,12 +21,25 @@ export class room {
   //These options would be unique to every game or subset of games
   private _GAMEOPTIONS = {MAXMOVEMENT: 3, MAXHEALTH: 100};
 
+  //Probably a much better way to do this
+  //Event emitter will update as it send outs packets it will allow packets to come in
+  private _floodGates = false;
+
   constructor(serverIO: any, opts?: {identifier: string, maxplayers: number, updateinterval: number}){
     this._io = io(serverIO);
     this._creationTimeStamp = new Date().getTime();
     this._identifier = opts && opts.identifier || this.randomName();
     this._MAXPLAYERS = opts && opts.maxplayers || 60;
     this._UPDATEINTERVAL = opts && opts.updateinterval || 30; //30fps
+    this.updateEmiter();
+  }
+
+  private updateEmiter(): void {
+    let self = this;
+    setInterval(function () {
+        self._io.socket.emit('update');
+        self._floodGates = true;
+    }, 33);
   }
 
   /*
@@ -46,10 +59,12 @@ export class room {
     //need to write data model for update obj
     socket.on('updates', (update: any) => {
       //Need to limit to update rate and check for validity of update
-      if(this._utils.getDifference(this._playerMap[socket.id].getX(), update.x) < this._GAMEOPTIONS.MAXMOVEMENT &&
-      this._utils.getDifference(this._playerMap[socket.id].getX(), update.x) < this._GAMEOPTIONS.MAXMOVEMENT){
-        this._playerMap[socket.id].setX(update.x);
-        this._playerMap[socket.id].setY(update.y);
+      if (this._floodGates === true) {
+        if(this._utils.getDifference(this._playerMap[socket.id].getX(), update.x) < this._GAMEOPTIONS.MAXMOVEMENT &&
+        this._utils.getDifference(this._playerMap[socket.id].getX(), update.x) < this._GAMEOPTIONS.MAXMOVEMENT){
+          this._playerMap[socket.id].setX(update.x);
+          this._playerMap[socket.id].setY(update.y);
+        }
       }
     });
 
