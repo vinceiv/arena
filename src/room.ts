@@ -8,17 +8,20 @@ export class room {
   private _identifier: string;
   private _timeline: any; //Not implemented will be Obj states[]; to roll back in time/deal with interpolation
   private _creationTimeStamp: any;
-  private _scoreBoard: [string,number][] = []; //NOT PART OF CORE
   private _io: any;
-  private _players: playerModel[] = [];
   private _MAXPLAYERS: number;
-  // private _chat: chat; Not implemented bing a chat room to a game
+  private _playerCount: number;
+  private _UPDATEINTERVAL: number;
+  private _scoreBoard: [string,number][] = []; //NOT PART OF CORE
+  private _playerMap: {[key:string]:playerModel} = {};
+  //private _chat: chat; Not implemented bing a chat room to a game
 
-  constructor(serverIO: any, Opt?: {identifier: string, maxplayers: number}){
+  constructor(serverIO: any, opts?: {identifier: string, maxplayers: number, updateinterval: number}){
     this._io = io(serverIO);
     this._creationTimeStamp = new Date().getTime();
-    this._identifier = Opt && Opt.identifier || this.randomName();
-    this._MAXPLAYERS = Opt && Opt.maxplayers || 60;
+    this._identifier = opts && opts.identifier || this.randomName();
+    this._MAXPLAYERS = opts && opts.maxplayers || 60;
+    this._UPDATEINTERVAL = opts && opts.updateinterval || 30; //30fps
   }
 
   /*
@@ -29,25 +32,34 @@ export class room {
     *  Room creates player obj and returns player and current state of the game
     */
     socket.on('requestNewPlayer', () => {
-      console.log('User: ' + socket.id + ' connected.');
-      var newPlayer = new playerModel(); //Example
-      this._players.push(newPlayer);
-      socket.emit('confirmedUser'); // Just for sake of testing, would be something like socket.emit('confirmedUser', p);
+      console.log('User: ' + socket.id + ' connected to room: ' + this._identifier);
+      var player = new playerModel();
+      this._playerMap[socket.id] = player;
+      socket.emit('confirmedUser', player); // Just for sake of testing, would be something like socket.emit('confirmedUser', p);
     });
 
-    socket.on('getUpTime', () => {
-      console.log('Uptime:', this.getUptime());
+    socket.on('updates', (update: any) => {
+      //Need to limit to update rate and check for validity of update
+      this._playerMap[socket.id] =  update;
+    });
+
+    socket.on('getStats', () => {
       this.dumpStats();
     });
+
+    socket.on('disconnect', () =>{
+      this._playerCount--;
+      //this._playerMap.delete(key:value); need to use es6 for map class
+    });
   }
 
-  public dumpStats(): void {
-    console.log('Server: ' , this._identifier);
-    console.log('Players: ', this._players.length);
-  }
+  // Connect player is in limbo
+  // Client must call requestNewPlayer to receive player Obj and add
+  // player to map
   public addPlayer(socket: any){
     //Create new player obj save socket.id to player id
     console.log("Added Client to room: %s", socket.id);
+    this._playerCount++;
     //pass socket to listener
     this.listener(socket);
   }
@@ -64,15 +76,26 @@ export class room {
     return readable;
   }
 
-  public getPlayerCount(): number { return this._players.length }
+  public getPlayerCount(): number { return this._playerCount }
+
+  public dumpStats(): void {
+    console.log('Server: ' , this._identifier);
+    console.log('Players: ', this._playerCount);
+  }
 
   private randomName(): string {
     return 'mew';
   }
 
   /* Unimplemented methods, drop ideas */
-  public getScoreboard(){} //Return Scoreboard, NOT PART OF CORE
   public tearDownRoom(){}
+
+  /* Example of extensibility
+  * Function is not part of CORE
+  */
+  public getScoreboard(){} //Return Scoreboard, NOT PART OF CORE
+  public kickPlayer(){}
+  public resetServer(){}
 }
 
 /* NOTES

@@ -9,22 +9,26 @@ import { room } from './room';
 class Server {
 
     public express: express.Application;
-    public static readonly PORT = 8080;
     public app: express.Application;
     private server: any;
     private io: any;
-    private port: number;
+    private _PORT: number;
+    private _MAXROOMS: number;
 
     private _rooms: room[] = [];
-    private _MAXROOMS: number = 10;
 
-    constructor(){
+
+    constructor(opts?: {port: number, maxrooms: number}){
       this.app = express();
-      this.port = 8080;
+      this._PORT = opts && opts.port || 8080;
+      this._MAXROOMS = opts && opts.maxrooms || 10;
       this.server = http.createServer(this.app);
       this.io = io(this.server);
       this.listener();
       this.setupRoutes();
+
+      //test
+      this.createRoom();
     }
 
     public static bootstrap(): Server{
@@ -38,19 +42,17 @@ class Server {
     }
 
     private listener(): void {
-      this.server.listen(this.port, () => {
-        console.log("Server Running Port %s", this.port);
+      this.server.listen(this._PORT, () => {
+        console.log("Server Running Port %s", this._PORT);
       });
 
       this.io.on('connection', (socket: any) => {
-        console.log('Client connecton on port %s \nClientID: %s', this.port, socket.id);
+        console.log('Client connecton on port %s \nClientID: %s', this._PORT, socket.id);
 
-        // TESTING
-        if(!this.createRoom()){
-          //ERROR CREATING ROOM THROW ERROR
-        } //Move this to admin function or client facing , maybe check if room exists if not create room
+        console.log(this._rooms.length);
         this._rooms[0].addPlayer(socket);
 
+        //connect to room
         socket.on('message', () => {
             this.io.emit('message');
         });
